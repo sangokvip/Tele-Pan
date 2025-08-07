@@ -80,7 +80,10 @@ export default async function handler(req, res) {
                 telegramMessageId: telegramResult.messageId
             }, 'File uploaded successfully to Telegram'));
         } else {
-            return res.status(500).json(createErrorResponse(telegramResult.error));
+            console.error('Telegram upload failed:', telegramResult);
+            return res.status(500).json(createErrorResponse(
+                `Telegram upload failed: ${telegramResult.error}. Retry count: ${telegramResult.retryCount || 0}`
+            ));
         }
         
     } catch (error) {
