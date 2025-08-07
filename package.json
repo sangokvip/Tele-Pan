@@ -1,0 +1,36 @@
+{
+  "name": "telegram-media-uploader",
+  "version": "1.0.0",
+  "description": "Web application for uploading media files to Telegram groups",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required for static files'",
+    "start": "vercel dev",
+    "deploy": "vercel --prod",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "telegram",
+    "upload",
+    "media",
+    "vercel",
+    "serverless"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "formidable": "^3.5.1",
+    "axios": "^1.6.2",
+    "form-data": "^4.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^32.5.0",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

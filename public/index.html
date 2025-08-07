@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram 媒体上传器</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Telegram 媒体上传器</h1>
+        <div id="upload-area" class="upload-area">
+            <div class="upload-content">
+                <div class="upload-icon">📁</div>
+                <p>拖拽文件到此处或点击选择文件</p>
+                <p class="file-types">支持图片和视频文件</p>
+                <input type="file" id="file-input" multiple accept="image/*,video/*" style="display: none;">
+                <button id="browse-btn" class="browse-btn">浏览文件</button>
+            </div>
+        </div>
+        
+        <div id="file-list" class="file-list" style="display: none;">
+            <h3>文件列表</h3>
+            <div id="files-container"></div>
+        </div>
+        
+        <div id="progress-section" class="progress-section" style="display: none;">
+            <h3>上传进度</h3>
+            <div id="overall-progress" class="progress-bar">
+                <div class="progress-fill"></div>
+                <span class="progress-text">0%</span>
+            </div>
+        </div>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3>上传结果</h3>
+            <div id="results-container"></div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

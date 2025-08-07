@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "name": "telegram-media-uploader",
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ],
+  "functions": {
+    "api/upload.js": {
+      "maxDuration": 30
+    },
+    "api/batch-upload.js": {
+      "maxDuration": 60
+    },
+    "api/health.js": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "TELEGRAM_BOT_TOKEN": "@telegram-bot-token",
+    "TELEGRAM_CHAT_ID": "@telegram-chat-id"
+  }
+}
