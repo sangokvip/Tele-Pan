@@ -52,10 +52,30 @@ class TelegramUploader {
     }
     
     addFiles(newFiles) {
+        console.log('Selected files:', newFiles);
+        
+        // Log file details for debugging
+        newFiles.forEach(file => {
+            console.log(`File: ${file.name}, Type: ${file.type}, Size: ${file.size}`);
+        });
+        
         // Filter for images and videos only
         const validFiles = newFiles.filter(file => {
-            return file.type.startsWith('image/') || file.type.startsWith('video/');
+            // Check MIME type first
+            const hasValidMimeType = file.type.startsWith('image/') || file.type.startsWith('video/');
+            
+            // If MIME type is empty, check file extension as fallback
+            const fileExtension = file.name.toLowerCase().split('.').pop();
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const videoExtensions = ['mp4', 'avi', 'mov', 'webm'];
+            const hasValidExtension = imageExtensions.includes(fileExtension) || videoExtensions.includes(fileExtension);
+            
+            const isValid = hasValidMimeType || hasValidExtension;
+            console.log(`File ${file.name} is valid: ${isValid} (MIME: ${file.type}, Extension: ${fileExtension})`);
+            return isValid;
         });
+        
+        console.log(`Valid files: ${validFiles.length} out of ${newFiles.length}`);
         
         if (validFiles.length !== newFiles.length) {
             this.showNotification('只支持图片和视频文件', 'warning');
