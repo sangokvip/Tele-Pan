@@ -16,32 +16,39 @@ export default async function handler(req, res) {
     }
     
     try {
-        // Test sending a simple message
-        const axios = require('axios');
-        
         console.log('Testing Telegram connection...');
         console.log('Bot token configured:', !!TELEGRAM_BOT_TOKEN);
         console.log('Chat ID configured:', !!TELEGRAM_CHAT_ID);
         
-        const response = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        // Use fetch instead of axios for better Vercel compatibility
+        const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const payload = {
             chat_id: TELEGRAM_CHAT_ID,
             text: `测试消息 - ${new Date().toISOString()}`
+        };
+        
+        const response = await fetch(telegramUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload)
         });
         
-        if (response.data.ok) {
+        const data = await response.json();
+        
+        if (response.ok && data.ok) {
             return res.status(200).json(createSuccessResponse({
-                messageId: response.data.result.message_id,
-                chatId: response.data.result.chat.id,
-                chatTitle: response.data.result.chat.title
+                messageId: data.result.message_id,
+                chatId: data.result.chat.id,
+                chatTitle: data.result.chat.title || 'Unknown'
             }, 'Test message sent successfully'));
         } else {
-            return res.status(500).json(createErrorResponse(response.data.description));
+            return res.status(500).json(createErrorResponse(data.description || 'Telegram API error'));
         }
         
     } catch (error) {
         console.error('Telegram test error:', error);
-        return res.status(500).json(createErrorResponse(
-            error.response?.data?.description || error.message
-        ));
+        return res.status(500).json(createErrorResponse(error.message));
     }
 }

@@ -132,7 +132,6 @@ async function processFile(file, index, total) {
 
 async function sendToTelegram(file, isImage, retryCount = 0) {
     const FormData = require('form-data');
-    const axios = require('axios');
     
     const MAX_RETRIES = 3;
     const RETRY_DELAYS = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
@@ -148,20 +147,21 @@ async function sendToTelegram(file, isImage, retryCount = 0) {
         const method = isImage ? 'sendPhoto' : 'sendVideo';
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`;
         
-        const response = await axios.post(url, form, {
-            headers: form.getHeaders(),
-            timeout: 30000, // 30 second timeout
-            maxContentLength: Infinity,
-            maxBodyLength: Infinity
+        const response = await fetch(url, {
+            method: 'POST',
+            body: form,
+            headers: form.getHeaders()
         });
         
-        if (response.data.ok) {
+        const data = await response.json();
+        
+        if (response.ok && data.ok) {
             return {
                 success: true,
-                messageId: response.data.result.message_id
+                messageId: data.result.message_id
             };
         } else {
-            throw new Error(response.data.description || 'Telegram API returned error');
+            throw new Error(data.description || 'Telegram API returned error');
         }
         
     } catch (error) {
