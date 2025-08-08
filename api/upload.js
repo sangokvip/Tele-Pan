@@ -36,13 +36,21 @@ export default async function handler(req, res) {
     }
     
     try {
+        console.log('Upload request started');
+        console.log('Request method:', req.method);
+        console.log('Content-Type:', req.headers['content-type']);
+        
         // Parse the uploaded file
         const form = formidable({
             maxFileSize: 50 * 1024 * 1024, // 50MB limit for Vercel
             keepExtensions: true,
         });
         
+        console.log('Parsing form data...');
         const [fields, files] = await form.parse(req);
+        console.log('Form parsing completed');
+        console.log('Files received:', Object.keys(files));
+        
         const file = files.file?.[0];
         
         if (!file) {
