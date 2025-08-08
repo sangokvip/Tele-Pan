@@ -489,6 +489,31 @@
                             chatInfo += '- 群组的Chat ID通常是负数\n';
                             chatInfo += '- 私聊的Chat ID通常是正数\n';
                             chatInfo += '- 复制对应的Chat ID到环境变量中\n';
+                            
+                            // 自动测试发送消息到第一个找到的群组
+                            const firstGroupId = Array.from(chats.keys()).find(id => id < 0);
+                            if (firstGroupId) {
+                                chatInfo += `\n🧪 自动测试发送消息到群组 ${firstGroupId}...\n`;
+                                try {
+                                    const testResponse = await fetch(`https://api.telegram.org/bot8270108550:AAGLbtlytV71tukgev24olcT7qV4zuWKREw/sendMessage`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                            chat_id: firstGroupId,
+                                            text: `✅ Chat ID 测试成功！\n群组ID: ${firstGroupId}\n时间: ${new Date().toLocaleString()}`
+                                        })
+                                    });
+                                    const testData = await testResponse.json();
+                                    if (testData.ok) {
+                                        chatInfo += `✅ 消息发送成功！Message ID: ${testData.result.message_id}\n`;
+                                        chatInfo += `📝 建议使用的Chat ID: ${firstGroupId}\n`;
+                                    } else {
+                                        chatInfo += `❌ 消息发送失败: ${testData.description}\n`;
+                                    }
+                                } catch (testError) {
+                                    chatInfo += `❌ 测试发送失败: ${testError.message}\n`;
+                                }
+                            }
                         } else {
                             chatInfo += '❌ 没有找到聊天记录\n';
                             chatInfo += '请确保:\n';
