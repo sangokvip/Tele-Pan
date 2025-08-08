@@ -19,6 +19,10 @@ export default async function handler(req, res) {
         // Test sending a simple message
         const axios = require('axios');
         
+        console.log('Testing Telegram connection...');
+        console.log('Bot token configured:', !!TELEGRAM_BOT_TOKEN);
+        console.log('Chat ID configured:', !!TELEGRAM_CHAT_ID);
+        
         const response = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
             chat_id: TELEGRAM_CHAT_ID,
             text: `测试消息 - ${new Date().toISOString()}`
