@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram 媒体上传器 - 测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background-color: #2980b9;
+        }
+        .test-button.success {
+            background-color: #27ae60;
+        }
+        .test-button.error {
+            background-color: #e74c3c;
+        }
+        .test-result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-result.success {
+            border-color: #27ae60;
+            background-color: #d5f4e6;
+        }
+        .test-result.error {
+            border-color: #e74c3c;
+            background-color: #fadbd8;
+        }
+        .file-input {
+            margin: 10px 0;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success {
+            background-color: #27ae60;
+        }
+        .status-error {
+            background-color: #e74c3c;
+        }
+        .status-pending {
+            background-color: #f39c12;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Telegram 媒体上传器测试页面</h1>
+        
+        <!-- 基础连接测试 -->
+        <div class="test-section">
+            <h2>1. 基础连接测试</h2>
+            <button class="test-button" onclick="testHealth()">
+                <span class="status-indicator status-pending" id="health-status"></span>
+                测试健康检查
+            </button>
+            <button class="test-button" onclick="testTelegram()">
+                <span class="status-indicator status-pending" id="telegram-status"></span>
+                测试Telegram连接
+            </button>
+            <div id="basic-results" class="test-result" style="display: none;"></div>
+        </div>
+
+        <!-- 环境变量测试 -->
+        <div class="test-section">
+            <h2>2. 环境变量测试</h2>
+            <button class="test-button" onclick="testEnvironment()">
+                <span class="status-indicator status-pending" id="env-status"></span>
+                检查环境变量
+            </button>
+            <div id="env-results" class="test-result" style="display: none;"></div>
+        </div>
+
+        <!-- 文件上传测试 -->
+        <div class="test-section">
+            <h2>3. 文件上传测试</h2>
+            <div class="file-input">
+                <input type="file" id="test-file" accept="image/*,video/*" />
+            </div>
+            <button class="test-button" onclick="testFileUpload()">
+                <span class="status-indicator status-pending" id="upload-status"></span>
+                测试文件上传
+            </button>
+            <button class="test-button" onclick="testSimpleUpload()">
+                <span class="status-indicator status-pending" id="simple-status"></span>
+                测试简化上传
+            </button>
+            <div class="progress-bar" id="upload-progress" style="display: none;">
+                <div class="progress-fill" id="upload-progress-fill"></div>
+            </div>
+            <div id="upload-results" class="test-result" style="display: none;"></div>
+        </div>
+
+        <!-- API端点测试 -->
+        <div class="test-section">
+            <h2>4. API端点测试</h2>
+            <button class="test-button" onclick="testAllEndpoints()">
+                <span class="status-indicator status-pending" id="endpoints-status"></span>
+                测试所有API端点
+            </button>
+            <div id="endpoints-results" class="test-result" style="display: none;"></div>
+        </div>
+
+        <!-- 网络诊断 -->
+        <div class="test-section">
+            <h2>5. 网络诊断</h2>
+            <button class="test-button" onclick="testNetwork()">
+                <span class="status-indicator status-pending" id="network-status"></span>
+                网络连接诊断
+            </button>
+            <div id="network-results" class="test-result" style="display: none;"></div>
+        </div>
+
+        <!-- 综合测试 -->
+        <div class="test-section">
+            <h2>6. 综合测试</h2>
+            <button class="test-button" onclick="runAllTests()">
+                🚀 运行所有测试
+            </button>
+            <div id="summary-results" class="test-result" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // 测试结果存储
+        const testResults = {};
+
+        // 工具函数
+        function updateStatus(elementId, status) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.className = `status-indicator status-${status}`;
+            }
+        }
+
+        function showResult(containerId, content, isError = false) {
+            const container = document.getElementById(containerId);
+            container.style.display = 'block';
+            container.textContent = content;
+            container.className = `test-result ${isError ? 'error' : 'success'}`;
+        }
+
+        function logTest(testName, result, error = null) {
+            testResults[testName] = {
+                success: !error,
+                result: result,
+                error: error,
+                timestamp: new Date().toISOString()
+            };
+            console.log(`Test: ${testName}`, testResults[testName]);
+        }
+
+        // 1. 健康检查测试
+        async function testHealth() {
+            updateStatus('health-status', 'pending');
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('health-status', 'success');
+                    logTest('health', data);
+                    showResult('basic-results', `✅ 健康检查成功\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Health check failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('health-status', 'error');
+                logTest('health', null, error.message);
+                showResult('basic-results', `❌ 健康检查失败\n错误: ${error.message}`, true);
+            }
+        }
+
+        // 2. Telegram连接测试
+        async function testTelegram() {
+            updateStatus('telegram-status', 'pending');
+            try {
+                const response = await fetch('/api/test-telegram');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('telegram-status', 'success');
+                    logTest('telegram', data);
+                    showResult('basic-results', `✅ Telegram连接成功\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Telegram test failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('telegram-status', 'error');
+                logTest('telegram', null, error.message);
+                showResult('basic-results', `❌ Telegram连接失败\n错误: ${error.message}`, true);
+            }
+        }
+
+        // 3. 环境变量测试
+        async function testEnvironment() {
+            updateStatus('env-status', 'pending');
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    const env = data.data.environment;
+                    const envStatus = {
+                        botToken: env.botTokenConfigured,
+                        chatId: env.chatIdConfigured,
+                        nodeVersion: env.nodeVersion
+                    };
+                    
+                    if (env.botTokenConfigured && env.chatIdConfigured) {
+                        updateStatus('env-status', 'success');
+                        logTest('environment', envStatus);
+                        showResult('env-results', `✅ 环境变量配置正确\n${JSON.stringify(envStatus, null, 2)}`);
+                    } else {
+                        throw new Error('环境变量配置不完整');
+                    }
+                } else {
+                    throw new Error('无法获取环境变量信息');
+                }
+            } catch (error) {
+                updateStatus('env-status', 'error');
+                logTest('environment', null, error.message);
+                showResult('env-results', `❌ 环境变量检查失败\n错误: ${error.message}`, true);
+            }
+        }
+
+        // 4. 文件上传测试
+        async function testFileUpload() {
+            const fileInput = document.getElementById('test-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('upload-results', '❌ 请先选择一个文件', true);
+                return;
+            }
+
+            updateStatus('upload-status', 'pending');
+            document.getElementById('upload-progress').style.display = 'block';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('upload-status', 'success');
+                    logTest('fileUpload', data);
+                    showResult('upload-results', `✅ 文件上传成功\n文件: ${file.name}\n大小: ${file.size} bytes\n类型: ${file.type}\n响应: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Upload failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('upload-status', 'error');
+                logTest('fileUpload', null, error.message);
+                showResult('upload-results', `❌ 文件上传失败\n文件: ${file.name}\n错误: ${error.message}`, true);
+            } finally {
+                document.getElementById('upload-progress').style.display = 'none';
+            }
+        }
+
+        // 5. 简化上传测试
+        async function testSimpleUpload() {
+            const fileInput = document.getElementById('test-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('upload-results', '❌ 请先选择一个文件', true);
+                return;
+            }
+
+            updateStatus('simple-status', 'pending');
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/simple-upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('simple-status', 'success');
+                    logTest('simpleUpload', data);
+                    showResult('upload-results', `✅ 简化上传测试成功\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Simple upload failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('simple-status', 'error');
+                logTest('simpleUpload', null, error.message);
+                showResult('upload-results', `❌ 简化上传测试失败\n错误: ${error.message}`, true);
+            }
+        }
+
+        // 6. API端点测试
+        async function testAllEndpoints() {
+            updateStatus('endpoints-status', 'pending');
+            const endpoints = [
+                '/api/health',
+                '/api/test-telegram',
+                '/api/simple-upload'
+            ];
+            
+            let results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint, {
+                        method: endpoint.includes('upload') ? 'POST' : 'GET'
+                    });
+                    
+                    results.push({
+                        endpoint,
+                        status: response.status,
+                        ok: response.ok,
+                        statusText: response.statusText
+                    });
+                } catch (error) {
+                    results.push({
+                        endpoint,
+                        error: error.message
+                    });
+                }
+            }
+            
+            const allOk = results.every(r => r.ok || r.status < 500);
+            updateStatus('endpoints-status', allOk ? 'success' : 'error');
+            logTest('endpoints', results);
+            showResult('endpoints-results', `API端点测试结果:\n${JSON.stringify(results, null, 2)}`, !allOk);
+        }
+
+        // 7. 网络诊断
+        async function testNetwork() {
+            updateStatus('network-status', 'pending');
+            
+            const tests = [
+                {
+                    name: 'Vercel函数响应时间',
+                    test: async () => {
+                        const start = Date.now();
+                        await fetch('/api/health');
+                        return Date.now() - start;
+                    }
+                },
+                {
+                    name: 'Telegram API连通性',
+                    test: async () => {
+                        const response = await fetch('https://api.telegram.org/bot8226410562:AAFobiVhMFdsPwHqEfhMDvTz9yGiHfgAPss/getMe');
+                        return response.ok;
+                    }
+                },
+                {
+                    name: '浏览器支持检查',
+                    test: async () => {
+                        return {
+                            fetch: typeof fetch !== 'undefined',
+                            formData: typeof FormData !== 'undefined',
+                            fileAPI: typeof File !== 'undefined'
+                        };
+                    }
+                }
+            ];
+            
+            let results = {};
+            
+            for (const test of tests) {
+                try {
+                    results[test.name] = await test.test();
+                } catch (error) {
+                    results[test.name] = `Error: ${error.message}`;
+                }
+            }
+            
+            updateStatus('network-status', 'success');
+            logTest('network', results);
+            showResult('network-results', `网络诊断结果:\n${JSON.stringify(results, null, 2)}`);
+        }
+
+        // 8. 运行所有测试
+        async function runAllTests() {
+            showResult('summary-results', '🚀 开始运行所有测试...\n');
+            
+            const tests = [
+                { name: '健康检查', func: testHealth },
+                { name: '环境变量', func: testEnvironment },
+                { name: 'Telegram连接', func: testTelegram },
+                { name: 'API端点', func: testAllEndpoints },
+                { name: '网络诊断', func: testNetwork }
+            ];
+            
+            for (const test of tests) {
+                showResult('summary-results', `${document.getElementById('summary-results').textContent}\n正在运行: ${test.name}...`);
+                await test.func();
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 等待1秒
+            }
+            
+            // 生成测试报告
+            const report = generateTestReport();
+            showResult('summary-results', `📊 测试完成!\n\n${report}`);
+        }
+
+        // 生成测试报告
+        function generateTestReport() {
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(r => r.success).length;
+            const failed = total - passed;
+            
+            let report = `测试总结:\n`;
+            report += `总计: ${total} 项测试\n`;
+            report += `通过: ${passed} 项\n`;
+            report += `失败: ${failed} 项\n\n`;
+            
+            report += `详细结果:\n`;
+            for (const [testName, result] of Object.entries(testResults)) {
+                const status = result.success ? '✅' : '❌';
+                report += `${status} ${testName}: ${result.success ? '通过' : result.error}\n`;
+            }
+            
+            if (failed > 0) {
+                report += `\n🔧 建议检查:\n`;
+                if (testResults.health && !testResults.health.success) {
+                    report += `- 检查Vercel部署状态\n`;
+                }
+                if (testResults.environment && !testResults.environment.success) {
+                    report += `- 检查环境变量配置\n`;
+                }
+                if (testResults.telegram && !testResults.telegram.success) {
+                    report += `- 检查Telegram Bot配置\n`;
+                }
+                if (testResults.fileUpload && !testResults.fileUpload.success) {
+                    report += `- 检查文件上传处理逻辑\n`;
+                }
+            }
+            
+            return report;
+        }
+
+        // 页面加载时自动运行基础测试
+        window.addEventListener('load', () => {
+            console.log('测试页面已加载，可以开始测试');
+            // 自动运行健康检查
+            setTimeout(testHealth, 1000);
+        });
+    </script>
+</body>
+</html>
