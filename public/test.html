@@ -122,6 +122,10 @@
                 <span class="status-indicator status-pending" id="telegram-status"></span>
                 测试Telegram连接
             </button>
+            <button class="test-button" onclick="debugTelegram()">
+                <span class="status-indicator status-pending" id="debug-telegram-status"></span>
+                调试Telegram API
+            </button>
             <div id="basic-results" class="test-result" style="display: none;"></div>
         </div>
 
@@ -445,6 +449,29 @@
             updateStatus('endpoints-status', allOk ? 'success' : 'error');
             logTest('endpoints', results);
             showResult('endpoints-results', `API端点测试结果:\n${JSON.stringify(results, null, 2)}`, !allOk);
+        }
+
+        // 调试Telegram API
+        async function debugTelegram() {
+            updateStatus('debug-telegram-status', 'pending');
+            try {
+                const response = await fetch('/api/debug-telegram', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('debug-telegram-status', 'success');
+                    logTest('debugTelegram', data);
+                    showResult('basic-results', `✅ Telegram API调试成功\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Debug Telegram failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('debug-telegram-status', 'error');
+                logTest('debugTelegram', null, error.message);
+                showResult('basic-results', `❌ Telegram API调试失败\n错误: ${error.message}`, true);
+            }
         }
 
         // 获取Chat ID
