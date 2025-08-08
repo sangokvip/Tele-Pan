@@ -132,6 +132,10 @@
                 <span class="status-indicator status-pending" id="env-status"></span>
                 检查环境变量
             </button>
+            <button class="test-button" onclick="getChatId()">
+                <span class="status-indicator status-pending" id="chatid-status"></span>
+                获取Chat ID
+            </button>
             <div id="env-results" class="test-result" style="display: none;"></div>
         </div>
 
@@ -400,6 +404,75 @@
             updateStatus('endpoints-status', allOk ? 'success' : 'error');
             logTest('endpoints', results);
             showResult('endpoints-results', `API端点测试结果:\n${JSON.stringify(results, null, 2)}`, !allOk);
+        }
+
+        // 获取Chat ID
+        async function getChatId() {
+            updateStatus('chatid-status', 'pending');
+            try {
+                // 使用新的Bot Token获取更新
+                const response = await fetch('https://api.telegram.org/bot8270108550:AAGLbtlytV71tukgev24olcT7qV4zuWKREw/getUpdates');
+                const data = await response.json();
+                
+                if (response.ok && data.ok) {
+                    updateStatus('chatid-status', 'success');
+                    
+                    let chatInfo = '📋 Chat ID 获取结果:\n\n';
+                    
+                    if (data.result && data.result.length > 0) {
+                        // 提取所有唯一的chat信息
+                        const chats = new Map();
+                        
+                        data.result.forEach(update => {
+                            if (update.message && update.message.chat) {
+                                const chat = update.message.chat;
+                                chats.set(chat.id, {
+                                    id: chat.id,
+                                    title: chat.title || chat.first_name || 'Unknown',
+                                    type: chat.type,
+                                    username: chat.username || 'N/A'
+                                });
+                            }
+                        });
+                        
+                        if (chats.size > 0) {
+                            chatInfo += '找到以下聊天:\n\n';
+                            chats.forEach((chat, id) => {
+                                chatInfo += `🔹 Chat ID: ${id}\n`;
+                                chatInfo += `   名称: ${chat.title}\n`;
+                                chatInfo += `   类型: ${chat.type}\n`;
+                                chatInfo += `   用户名: ${chat.username}\n\n`;
+                            });
+                            
+                            chatInfo += '💡 使用说明:\n';
+                            chatInfo += '- 群组的Chat ID通常是负数\n';
+                            chatInfo += '- 私聊的Chat ID通常是正数\n';
+                            chatInfo += '- 复制对应的Chat ID到环境变量中\n';
+                        } else {
+                            chatInfo += '❌ 没有找到聊天记录\n';
+                            chatInfo += '请确保:\n';
+                            chatInfo += '1. Bot已添加到群组中\n';
+                            chatInfo += '2. 在群组中发送了消息\n';
+                            chatInfo += '3. Bot Token正确\n';
+                        }
+                    } else {
+                        chatInfo += '❌ 没有找到任何更新\n';
+                        chatInfo += '请先:\n';
+                        chatInfo += '1. 将Bot添加到群组\n';
+                        chatInfo += '2. 在群组中发送一条消息\n';
+                        chatInfo += '3. 然后再次点击此按钮\n';
+                    }
+                    
+                    logTest('getChatId', data);
+                    showResult('env-results', chatInfo);
+                } else {
+                    throw new Error(`获取Chat ID失败: ${data.description || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('chatid-status', 'error');
+                logTest('getChatId', null, error.message);
+                showResult('env-results', `❌ 获取Chat ID失败\n错误: ${error.message}\n\n请检查:\n1. Bot Token是否正确\n2. 网络连接是否正常\n3. Bot是否已添加到群组`, true);
+            }
         }
 
         // 7. 网络诊断
