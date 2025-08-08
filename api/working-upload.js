@@ -136,30 +136,36 @@ async function parseMultipartData(req) {
     });
 }
 
-// Simple Telegram sender using fetch and JSON
+// Simple Telegram sender using form-data package
 async function sendToTelegramSimple(fileData) {
     try {
-        console.log('Sending to Telegram using simple method...');
+        console.log('Sending to Telegram using form-data package...');
+        console.log('File size:', fileData.buffer.length, 'bytes');
         
-        // Convert to base64
-        const base64Data = fileData.buffer.toString('base64');
-        console.log('Base64 data length:', base64Data.length);
+        // Check file size (Telegram limit is 50MB for photos, but let's be conservative)
+        const maxSize = 5 * 1024 * 1024; // 5MB limit to avoid 413 errors
+        if (fileData.buffer.length > maxSize) {
+            throw new Error(`File too large: ${fileData.buffer.length} bytes (max: ${maxSize} bytes). Please choose a smaller image.`);
+        }
         
-        // Use sendDocument with base64 data
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`;
-        const payload = {
-            chat_id: TELEGRAM_CHAT_ID,
-            document: `data:${fileData.mimetype};base64,${base64Data}`,
-            caption: `📎 ${fileData.filename}`
-        };
+        // Use form-data package for better compatibility
+        const FormData = require('form-data');
+        const formData = new FormData();
+        
+        formData.append('chat_id', TELEGRAM_CHAT_ID);
+        formData.append('photo', fileData.buffer, {
+            filename: fileData.filename,
+            contentType: fileData.mimetype
+        });
+        formData.append('caption', `📷 ${fileData.filename}`);
+        
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`;
         
         console.log('Sending request to Telegram API...');
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            body: formData,
+            headers: formData.getHeaders()
         });
         
         console.log('Telegram API response status:', response.status);
