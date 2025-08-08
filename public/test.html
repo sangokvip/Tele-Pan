@@ -153,6 +153,10 @@
                 <span class="status-indicator status-pending" id="simple-status"></span>
                 测试简化上传
             </button>
+            <button class="test-button" onclick="testUploadV2()">
+                <span class="status-indicator status-pending" id="uploadv2-status"></span>
+                测试上传V2（无formidable）
+            </button>
             <div class="progress-bar" id="upload-progress" style="display: none;">
                 <div class="progress-fill" id="upload-progress-fill"></div>
             </div>
@@ -366,6 +370,43 @@
                 updateStatus('simple-status', 'error');
                 logTest('simpleUpload', null, error.message);
                 showResult('upload-results', `❌ 简化上传测试失败\n错误: ${error.message}`, true);
+            }
+        }
+
+        // 6. 上传V2测试（无formidable）
+        async function testUploadV2() {
+            const fileInput = document.getElementById('test-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('upload-results', '❌ 请先选择一个文件', true);
+                return;
+            }
+
+            updateStatus('uploadv2-status', 'pending');
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/upload-v2', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('uploadv2-status', 'success');
+                    logTest('uploadV2', data);
+                    showResult('upload-results', `✅ 上传V2测试成功（实际发送到Telegram）\n文件: ${file.name}\n大小: ${file.size} bytes\n类型: ${file.type}\n响应: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Upload V2 failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('uploadv2-status', 'error');
+                logTest('uploadV2', null, error.message);
+                showResult('upload-results', `❌ 上传V2测试失败\n文件: ${file.name}\n错误: ${error.message}`, true);
             }
         }
 
