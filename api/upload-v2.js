@@ -207,7 +207,26 @@ async function sendToTelegram(file, isImage, retryCount = 0) {
             headers: form.getHeaders()
         });
         
-        const data = await response.json();
+        console.log('Telegram API response status:', response.status);
+        console.log('Telegram API response headers:', Object.fromEntries(response.headers.entries()));
+        
+        // Check if response is ok before parsing JSON
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.log('Telegram API error response:', errorText);
+            throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+        }
+        
+        // Try to parse JSON with error handling
+        let data;
+        try {
+            const responseText = await response.text();
+            console.log('Telegram API response text:', responseText);
+            data = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            throw new Error(`Invalid JSON response from Telegram API: ${parseError.message}`);
+        }
         
         if (response.ok && data.ok) {
             console.log(`Successfully sent file to Telegram, message ID: ${data.result.message_id}`);
