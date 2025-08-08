@@ -3,10 +3,19 @@
     "api/upload.js": {
       "maxDuration": 30
     },
+    "api/upload-v2.js": {
+      "maxDuration": 30
+    },
     "api/batch-upload.js": {
       "maxDuration": 60
     },
     "api/health.js": {
+      "maxDuration": 10
+    },
+    "api/test-telegram.js": {
+      "maxDuration": 10
+    },
+    "api/simple-upload.js": {
       "maxDuration": 10
     }
   }
