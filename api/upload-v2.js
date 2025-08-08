@@ -48,37 +48,42 @@ export default async function handler(req, res) {
             mimetype: fileData.mimetype
         });
         
-        // Validate file type
-        const isImage = SUPPORTED_IMAGE_TYPES.includes(fileData.mimetype);
-        const isVideo = SUPPORTED_VIDEO_TYPES.includes(fileData.mimetype);
+        // Validate file type with fallback to filename extension
+        let isImage = SUPPORTED_IMAGE_TYPES.includes(fileData.mimetype);
+        let isVideo = SUPPORTED_VIDEO_TYPES.includes(fileData.mimetype);
+        
+        // Fallback: check file extension if MIME type is not recognized
+        if (!isImage && !isVideo) {
+            const fileExtension = fileData.filename.toLowerCase().split('.').pop();
+            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const videoExtensions = ['mp4', 'avi', 'mov', 'webm'];
+            
+            isImage = imageExtensions.includes(fileExtension);
+            isVideo = videoExtensions.includes(fileExtension);
+            
+            // Update MIME type if detected by extension
+            if (isImage && !fileData.mimetype.startsWith('image/')) {
+                fileData.mimetype = `image/${fileExtension === 'jpg' ? 'jpeg' : fileExtension}`;
+                console.log('Updated MIME type based on extension:', fileData.mimetype);
+            } else if (isVideo && !fileData.mimetype.startsWith('video/')) {
+                fileData.mimetype = `video/${fileExtension}`;
+                console.log('Updated MIME type based on extension:', fileData.mimetype);
+            }
+        }
         
         if (!isImage && !isVideo) {
             return res.status(400).json(createErrorResponse(
-                `Unsupported file type: ${fileData.mimetype}. Supported types: ${[...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_VIDEO_TYPES].join(', ')}`
+                `Unsupported file type: ${fileData.mimetype} (${fileData.filename}). Supported types: ${[...SUPPORTED_IMAGE_TYPES, ...SUPPORTED_VIDEO_TYPES].join(', ')}`
             ));
         }
         
-        // Create temporary file
-        const tempFilePath = path.join(os.tmpdir(), `upload_${Date.now()}_${fileData.filename}`);
-        fs.writeFileSync(tempFilePath, fileData.buffer);
-        
-        console.log('Temporary file created:', tempFilePath);
-        
-        // Send to Telegram
+        // Send to Telegram directly using buffer (no temporary file needed)
         const telegramResult = await sendToTelegram({
-            filepath: tempFilePath,
+            buffer: fileData.buffer,
             originalFilename: fileData.filename,
             size: fileData.buffer.length,
             mimetype: fileData.mimetype
         }, isImage);
-        
-        // Clean up temporary file
-        try {
-            fs.unlinkSync(tempFilePath);
-            console.log('Temporary file cleaned up');
-        } catch (cleanupError) {
-            console.error('Failed to cleanup temp file:', cleanupError);
-        }
         
         if (telegramResult.success) {
             return res.status(200).json(createSuccessResponse({
@@ -192,9 +197,12 @@ async function sendToTelegram(file, isImage, retryCount = 0) {
         const form = new FormData();
         form.append('chat_id', TELEGRAM_CHAT_ID);
         
-        const fileStream = fs.createReadStream(file.filepath);
+        // Use buffer directly instead of file stream
         const fieldName = isImage ? 'photo' : 'video';
-        form.append(fieldName, fileStream, file.originalFilename);
+        form.append(fieldName, file.buffer, {
+            filename: file.originalFilename,
+            contentType: file.mimetype
+        });
         
         const method = isImage ? 'sendPhoto' : 'sendVideo';
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`;
