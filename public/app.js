@@ -197,10 +197,40 @@ class TelegramUploader {
             });
             this.renderFileList();
             
-            const response = await fetch('/api/batch-upload', {
-                method: 'POST',
-                body: formData
-            });
+            // For now, process files one by one using base64 method
+            const results = [];
+            for (let i = 0; i < this.files.length; i++) {
+                const fileObj = this.files[i];
+                const singleFormData = new FormData();
+                singleFormData.append('file', fileObj.file);
+                
+                try {
+                    const response = await fetch('/api/test-photo-base64', {
+                        method: 'POST',
+                        body: singleFormData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success && result.data) {
+                        fileObj.status = 'success';
+                        fileObj.telegramMessageId = result.data.telegramMessageId;
+                        fileObj.fileSize = result.data.fileSize;
+                        fileObj.fileType = result.data.fileType;
+                    } else {
+                        fileObj.status = 'failed';
+                        fileObj.error = result.error || 'Upload failed';
+                    }
+                } catch (error) {
+                    fileObj.status = 'failed';
+                    fileObj.error = error.message;
+                }
+                
+                this.renderFileList();
+                this.updateOverallProgress();
+            }
+            
+            return; // Skip the original batch upload logic
             
             const result = await response.json();
             
