@@ -205,7 +205,7 @@ class TelegramUploader {
                 singleFormData.append('file', fileObj.file);
                 
                 try {
-                    const response = await fetch('/api/test-photo-base64', {
+                    const response = await fetch('/api/working-upload', {
                         method: 'POST',
                         body: singleFormData
                     });
@@ -281,7 +281,7 @@ class TelegramUploader {
             fileObj.status = 'sending';
             this.renderFileList();
             
-            const response = await fetch('/api/test-photo-base64', {
+            const response = await fetch('/api/working-upload', {
                 method: 'POST',
                 body: formData
             });

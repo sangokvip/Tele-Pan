@@ -165,6 +165,10 @@
                 <span class="status-indicator status-pending" id="base64-status"></span>
                 测试Base64上传
             </button>
+            <button class="test-button" onclick="testWorkingUpload()">
+                <span class="status-indicator status-pending" id="working-status"></span>
+                测试工作上传端点
+            </button>
             <div class="progress-bar" id="upload-progress" style="display: none;">
                 <div class="progress-fill" id="upload-progress-fill"></div>
             </div>
@@ -452,6 +456,43 @@
                 updateStatus('base64-status', 'error');
                 logTest('base64Upload', null, error.message);
                 showResult('upload-results', `❌ Base64上传测试失败\n文件: ${file.name}\n错误: ${error.message}`, true);
+            }
+        }
+
+        // 8. 工作上传端点测试
+        async function testWorkingUpload() {
+            const fileInput = document.getElementById('test-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showResult('upload-results', '❌ 请先选择一个文件', true);
+                return;
+            }
+
+            updateStatus('working-status', 'pending');
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch('/api/working-upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    updateStatus('working-status', 'success');
+                    logTest('workingUpload', data);
+                    showResult('upload-results', `✅ 工作上传端点测试成功（实际发送到Telegram）\n文件: ${file.name}\n大小: ${file.size} bytes\n类型: ${file.type}\n响应: ${JSON.stringify(data, null, 2)}`);
+                } else {
+                    throw new Error(`Working upload failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                updateStatus('working-status', 'error');
+                logTest('workingUpload', null, error.message);
+                showResult('upload-results', `❌ 工作上传端点测试失败\n文件: ${file.name}\n错误: ${error.message}`, true);
             }
         }
 
