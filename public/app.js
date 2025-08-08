@@ -22,8 +22,18 @@ class TelegramUploader {
         this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
         
         // Click to browse
-        this.browseBtn.addEventListener('click', () => this.fileInput.click());
-        this.uploadArea.addEventListener('click', () => this.fileInput.click());
+        this.browseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.fileInput.click();
+        });
+        this.uploadArea.addEventListener('click', (e) => {
+            // Only trigger file input if clicking on the upload area itself, not on buttons
+            if (e.target === this.uploadArea || e.target.closest('.upload-content')) {
+                if (!e.target.closest('button')) {
+                    this.fileInput.click();
+                }
+            }
+        });
         
         // File input change
         this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));

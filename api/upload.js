@@ -95,6 +95,11 @@ export default async function handler(req, res) {
         }
         
     } catch (error) {
+        console.error('Upload error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
         handleError(error, res, 'File upload');
     }
 }
