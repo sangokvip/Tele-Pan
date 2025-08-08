@@ -251,7 +251,7 @@ class TelegramUploader {
             fileObj.status = 'sending';
             this.renderFileList();
             
-            const response = await fetch('/api/upload', {
+            const response = await fetch('/api/upload-v2', {
                 method: 'POST',
                 body: formData
             });
