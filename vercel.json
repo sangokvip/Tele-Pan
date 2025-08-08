@@ -17,6 +17,12 @@
     },
     "api/simple-upload.js": {
       "maxDuration": 10
+    },
+    "api/debug-telegram.js": {
+      "maxDuration": 10
+    },
+    "api/test-photo-base64.js": {
+      "maxDuration": 30
     }
   }
 }
